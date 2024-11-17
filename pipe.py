@@ -65,7 +65,7 @@ options = GestureRecognizerOptions(
 with GestureRecognizer.create_from_options(options) as recognizer:
   # The detector is initialized. Use it here.
   # ...
-    cap = cv2.VideoCapture('http://picam.local:5000/video_feed')
+    cap = cv2.VideoCapture('http://picam.local:8000/stream.mjpg')
     print("Started")
     while True:
         try:
