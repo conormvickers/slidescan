@@ -10,6 +10,7 @@ def gen_frames():
     while True:
         ret, frame = cap.read()
         if not ret:
+            print('ERROR: Failed to read frame from camera')
             break
         # Convert the frame to JPEG
         ret, jpeg = cv2.imencode('.jpg', frame)
