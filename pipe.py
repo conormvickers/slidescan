@@ -58,14 +58,23 @@ def print_result(result: GestureRecognizerResult, output_image: mp.Image, timest
         except Exception as e:
             print(e)
 
+cap = cv2.VideoCapture('http://picam.local:8000/stream.mjpg')
+
+    
+# options = GestureRecognizerOptions(
+#     base_options=BaseOptions(model_asset_path='./gesture_recognizer.task'),
+#     running_mode=VisionRunningMode.LIVE_STREAM,
+#     result_callback=print_result)
+
 options = GestureRecognizerOptions(
     base_options=BaseOptions(model_asset_path='./gesture_recognizer.task'),
-    running_mode=VisionRunningMode.LIVE_STREAM,
-    result_callback=print_result)
+   )
+
 with GestureRecognizer.create_from_options(options) as recognizer:
   # The detector is initialized. Use it here.
   # ...
-    cap = cv2.VideoCapture('http://picam.local:8000/stream.mjpg')
+    
+
     print("Started")
     while True:
         try:
@@ -73,10 +82,21 @@ with GestureRecognizer.create_from_options(options) as recognizer:
             if not ret:
                 print("Error reading frame")
                 break
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-            recognizer.recognize_async(mp_image, int(time.time() * 1000))
+            
+            
+            frame_srgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_srgb)
+            # recognizer.recognize_async(mp_image, int(time.time() * 1000))
+            result =  recognizer.recognize(mp_image)
+            print(result)
+            cv2.imshow('Video', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
         except Exception as e:
             print(e)
             break
 
 cap.release()
+cv2.destroyAllWindows()
