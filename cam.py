@@ -1,21 +1,36 @@
 from flask import Flask, render_template, Response
 import cv2
 
+from picamera2 import Picamera2
+from picamera2.encoders import JpegEncoder
+from picamera2.outputs import FileOutput
+
 app = Flask(__name__)
 
-# Open the default camera (index 0)
-cap = cv2.VideoCapture(0)
+pi = True
+
+if pi:
+    
+    picam2 = Picamera2()
+    picam2.configure(picam2.create_video_configuration(main={"size": (640, 480)}))
+    picam2.start()
+
+else:
+    cap = cv2.VideoCapture(0)
 
 def gen_frames():
     while True:
-        ret, frame = cap.read()
-        if not ret:
-            print('ERROR: Failed to read frame from camera')
-            break
-        # Convert the frame to JPEG
-        ret, jpeg = cv2.imencode('.jpg', frame)
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
+        if pi:
+            frame = picam2.capture_array()
+        # ret, frame = cap.read()
+        # if not ret:
+        #     print('ERROR: Failed to read frame from camera')
+        #     break
+        
+            ret, jpeg = cv2.imencode('.jpg', frame)
+            
+            yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + jpeg.tobytes() + b'\r\n')
 
 @app.route('/video_feed')
 def video_feed():

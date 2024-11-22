@@ -78,16 +78,16 @@ with GestureRecognizer.create_from_options(options) as recognizer:
                 break
             
             
-            frame_srgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            # frame_srgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame_srgb)
+            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
             # recognizer.recognize_async(mp_image, int(time.time() * 1000))
             result =  recognizer.recognize(mp_image)
             if result.gestures:
                 gesture = result.gestures[0][0].category_name
                 fire_rate_limited_function(gesture=gesture)
-            # cv2.imshow('Video', frame)
+            cv2.imshow('Video', frame)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
         except Exception as e:
