@@ -55,8 +55,9 @@ def fire_rate_limited_function(gesture):
         print("Throttled")
 
 
-cap = cv2.VideoCapture('http://picam.local:8000/stream.mjpg')
-
+# cap = cv2.VideoCapture('http://picam.local:8000/stream.mjpg')
+# cap = cv2.VideoCapture('http://picam.local:5000/video_feed')
+cap = cv2.VideoCapture('http://localhost:5000/video_feed')
     
 # options = GestureRecognizerOptions(
 #     base_options=BaseOptions(model_asset_path='./gesture_recognizer.task'),
