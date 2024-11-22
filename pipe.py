@@ -18,6 +18,8 @@ volumeup = "https://homeassistant.docdrive.link/api/webhook/ccHiaOkjUEi2qqT4oXmA
 volumedown = "https://homeassistant.docdrive.link/api/webhook/q0oX9549tRvZcvkV4Lq1Ri4CI96I7yrh"
 url = playpause
 
+timethresh = 2
+
 def rate_limited_function(url):
     # Your function code here
     print("Function fired ", url)
@@ -32,10 +34,8 @@ def rate_limited_function(url):
 def fire_rate_limited_function(gesture):
     global last_fire_time
     
-    
-    
     current_time = time.time()  
-    if current_time - last_fire_time >= 1:
+    if current_time - last_fire_time >= timethresh:
         
         url = ''
         match gesture:
@@ -68,9 +68,6 @@ options = GestureRecognizerOptions(
    )
 
 with GestureRecognizer.create_from_options(options) as recognizer:
-  # The detector is initialized. Use it here.
-  # ...
-    
 
     print("Started")
     while True:
