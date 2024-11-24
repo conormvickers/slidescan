@@ -30,24 +30,24 @@ def rate_limited_function(url):
 
     print(response.text)
     
-    
+
+gestures = ["Victory", "ILoveYou", "Thumb_Down"]
 def fire_rate_limited_function(gesture):
-    global last_fire_time
+    global last_fire_time, gestures
     
     current_time = time.time()  
-    if current_time - last_fire_time >= timethresh:
+    if current_time - last_fire_time >= timethresh :
         
         url = ''
-        match gesture:
-            case 'Victory':
-                url = playpause
-            case 'Thumb_Up':
-                url = volumeup
-            case 'Thumb_Down':
-                url = volumedown
-            case _:
-                url = ''
-                return
+        if gesture == gestures[0]:
+            url = playpause
+        elif gesture == gestures[1]:
+            url = volumeup
+        elif gesture == gestures[2]:
+            url = volumedown
+        else:
+            url = ''
+            return
         
         rate_limited_function(url)
         last_fire_time = current_time
@@ -56,8 +56,9 @@ def fire_rate_limited_function(gesture):
 
 
 # cap = cv2.VideoCapture('http://picam.local:8000/stream.mjpg')
-# cap = cv2.VideoCapture('http://picam.local:5000/video_feed')
-cap = cv2.VideoCapture('http://localhost:5000/video_feed')
+cap = cv2.VideoCapture('http://picam.local:5000/video_feed')
+# cap = cv2.VideoCapture('http://localhost:5000/video_feed')
+#cap = cv2.VideoCapture('http://Bertha:5000/video_feed')
     
 # options = GestureRecognizerOptions(
 #     base_options=BaseOptions(model_asset_path='./gesture_recognizer.task'),
@@ -76,21 +77,34 @@ with GestureRecognizer.create_from_options(options) as recognizer:
             ret, frame = cap.read()
             if not ret:
                 print("Error reading frame")
-                break
-            
+                i = 0
+                while not ret:
+                    print('waiting 5 seconds  ...  ', i)
+                    time.sleep(5)
+                    print("trying again")
+                    cap = cv2.VideoCapture('http://picam.local:5000/video_feed')
+
+                    ret, frame = cap.read()
+                    i = i + 1
+                    
+                
+            else:
             
             # frame_srgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
 
-            mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
-            # recognizer.recognize_async(mp_image, int(time.time() * 1000))
-            result =  recognizer.recognize(mp_image)
-            if result.gestures:
-                gesture = result.gestures[0][0].category_name
-                fire_rate_limited_function(gesture=gesture)
-            cv2.imshow('Video', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+                mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=frame)
+                # recognizer.recognize_async(mp_image, int(time.time() * 1000))
+                result =  recognizer.recognize(mp_image)
+                if result.gestures:
+                    gesture = result.gestures[0][0].category_name
+                    score = result.gestures[0][0].score
+                    if gesture in gestures and score > 0.7:
+                        print(result.gestures)
+                        fire_rate_limited_function(gesture=gesture)
+                cv2.imshow('Video', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
         except Exception as e:
             print(e)
             break
