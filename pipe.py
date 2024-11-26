@@ -14,9 +14,9 @@ VisionRunningMode = mp.tasks.vision.RunningMode
 last_fire_time = time.time()
 
 
-playpause = "https://homeassistant.docdrive.link/api/webhook/YX7ptzJCNDcuvtfvmrxLMvW4mH0HUATj"
-volumeup = "https://homeassistant.docdrive.link/api/webhook/ccHiaOkjUEi2qqT4oXmAic66tjGW2GwH"
-volumedown = "https://homeassistant.docdrive.link/api/webhook/q0oX9549tRvZcvkV4Lq1Ri4CI96I7yrh"
+playpause = "http://main.server:8123/api/webhook/YX7ptzJCNDcuvtfvmrxLMvW4mH0HUATj"
+volumeup = "http://main.server:8123/api/webhook/ccHiaOkjUEi2qqT4oXmAic66tjGW2GwH"
+volumedown = "http://main.server:8123/api/webhook/q0oX9549tRvZcvkV4Lq1Ri4CI96I7yrh"
 url = playpause
 
 timethresh = 2
