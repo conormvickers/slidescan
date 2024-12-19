@@ -32,7 +32,7 @@ def rate_limited_function(url):
     print(response.text)
     
 
-gestures = ["Victory", "ILoveYou", "Thumb_Down"]
+gestures = ["Victory","Pointing_Up", "ILoveYou"]
 def fire_rate_limited_function(gesture):
     global last_fire_time, gestures
     
@@ -60,13 +60,14 @@ urla = 'http://picam.local:8000/stream.mjpg'
 urlb = 'http://picam.local:5000/video_feed'
 urlc = 'http://localhost:5000/video_feed'
 urlbertha = 'http://Bertha:5000/video_feed'
+espurl = 'http://192.168.1.146'
     
 # options = GestureRecognizerOptions(
 #     base_options=BaseOptions(model_asset_path='./gesture_recognizer.task'),
 #     running_mode=VisionRunningMode.LIVE_STREAM,
 #     result_callback=print_result)
-
-cap = cv2.VideoCapture(urla)
+streamurl = espurl
+cap = cv2.VideoCapture(streamurl)
 
 
 
@@ -82,7 +83,6 @@ with GestureRecognizer.create_from_options(options) as recognizer:
     def process_frame(frame):
         global processing
         processing = True
-        print('frame')
         frame_srgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         
         
@@ -115,7 +115,7 @@ with GestureRecognizer.create_from_options(options) as recognizer:
                     print('waiting 5 seconds  ...  ', i)
                     time.sleep(5)
                     print("trying again")
-                    cap = cv2.VideoCapture(url)
+                    cap = cv2.VideoCapture(streamurl)
 
                     ret, frame = cap.read()
                     i = i + 1
