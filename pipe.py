@@ -4,6 +4,7 @@ import time
 import requests
 import threading
 
+print ("Started")
 
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
@@ -60,7 +61,7 @@ urla = 'http://picam.local:8000/stream.mjpg'
 urlb = 'http://picam.local:5000/video_feed'
 urlc = 'http://localhost:5000/video_feed'
 urlbertha = 'http://Bertha:5000/video_feed'
-espurl = 'http://192.168.1.146'
+espurl = 'http://192.168.1.146/mjpeg/1'
     
 # options = GestureRecognizerOptions(
 #     base_options=BaseOptions(model_asset_path='./gesture_recognizer.task'),
@@ -69,6 +70,33 @@ espurl = 'http://192.168.1.146'
 streamurl = espurl
 cap = cv2.VideoCapture(streamurl)
 
+
+while True:
+        try:
+            ret, frame = cap.read()
+            if not ret:
+                print("Error reading frame")
+                i = 0
+                while not ret:
+                    print('waiting 5 seconds  ...  ', i)
+                    time.sleep(5)
+                    print("trying again")
+                    cap = cv2.VideoCapture(streamurl)
+
+                    ret, frame = cap.read()
+                    i = i + 1
+                    
+                
+            else:
+            
+         
+                
+                cv2.imshow('Video', frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+        except Exception as e:
+            print(e)
+            break
 
 
 
