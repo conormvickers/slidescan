@@ -1,3 +1,4 @@
+import os
 import cv2
 import tkinter as tk
 from PIL import Image, ImageTk
@@ -5,6 +6,16 @@ import threading
 import serial
 import time
 import re
+import signal
+import sys
+
+
+# Create a flag to indicate that the threads should stop
+stop_event = threading.Event()
+
+# List to store the running threads
+threads = []
+
 
 
 absolute_preable = b"G90 G0"    
@@ -179,19 +190,27 @@ zoomoutbutton.pack(side=tk.LEFT)
 scanbutton = tk.Button(button_frame, text="Start Scan", command=start_scan)
 scanbutton.pack(side=tk.LEFT)
 
+exceptionthrown = False
+
 def close_all():
     
-    global cap, ser, root
-    cap.release()
-    ser.close()
+    global cap, ser, root, exceptionthrown
     root.destroy()
+    exceptionthrown = True
+
+    for thread in threads:
+        print("Interrupting thread")
+        thread.join()
+    
+    
+
     
 close_button = tk.Button(button_frame, text="Close", command=close_all)
 close_button.pack(side=tk.LEFT)
 
 # Establish serial connection with GRBL controller
 try:
-    ser = serial.Serial('COM3', 115200, timeout=1)  # Replace '/dev/ttyUSB0' with your actual serial port
+    ser = serial.Serial('/dev/ttyACM0', 115200, timeout=3)  # Replace '/dev/ttyUSB0' with your actual serial port
     print("Serial connection established with GRBL controller")
 except serial.SerialException:
     print("Failed to establish serial connection with GRBL controller")
@@ -219,14 +238,34 @@ def send_gcode(gcode, callback=None):
             startup_commands[startup_sequence_index]()
         
     
-
-cap = cv2.VideoCapture(1)
-
-# Function to update the video feed
 def update_video():
-    global save_next_frame, scan_x, scan_y, record_variance_next_frame, zoom_above_start, highest_variance, highest_variance_z
+    global exceptionthrown, save_next_frame, scan_x, scan_y, record_variance_next_frame, zoom_above_start, highest_variance, highest_variance_z
+    
+    try:
+        cap = cv2.VideoCapture(0)
+        ret, frame = cap.read()
+        if not ret:
+            print("Error reading frame")
+            i = 0
+            while not ret and not exceptionthrown:
+                if i > 4:
+                    exceptionthrown = True
+                    break
+                print('waiting few seconds  ...  ', i)
+                time.sleep(1)
+                print("trying again")
+                cap = cv2.VideoCapture(1)
+
+                ret, frame = cap.read()
+                i = i + 1
+    except Exception as e:
+        print("Error updating video feed:", e)
+        exceptionthrown = True
+        
     cv2.namedWindow("Video Feed", cv2.WINDOW_NORMAL)
-    while True:
+    
+    while not exceptionthrown:
+        
         ret, frame = cap.read()
         if ret:
             cv2.imshow("Video Feed", frame)
@@ -250,17 +289,43 @@ def update_video():
                 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
+        else:
+            print("Error reading frame")
+            i = 0
+            while not ret and not exceptionthrown:
+                if i > 4:
+                    exceptionthrown = True
+                    break
+                print('waiting few seconds  ...  ', i)
+                time.sleep(1)
+                print("trying again")
+                cap = cv2.VideoCapture(1)
+
+                ret, frame = cap.read()
+                i = i + 1
+    print("Video feed closed")
     cv2.destroyAllWindows()
+    cap.release()
+
+
+        
 
 # Create a thread for the video feed update loop
-video_thread = threading.Thread(target=update_video)
-video_thread.start()
+def start_video_thread():
+    try:
+        video_thread = threading.Thread(target=update_video)
+        video_thread.start()
+        threads.append(video_thread)
+        print("Video thread started")
+    except Exception as e:
+        print("Error starting video thread:", e)
+        root.destroy()
+
+# Create a thread for the video feed update loop
+# start_video_thread()
 
 # Start the Tkinter event loop
 root.mainloop()
-
-# Release the camera when the window is closed
-cap.release()
 
 # Close the serial connection when the window is closed
 try:
