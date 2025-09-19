@@ -19,7 +19,7 @@ threads = []
 
 
 absolute_preable = b"G90 G0"    
-start_position = [-5.2, -2, 7]
+start_position = [-3.1, -8.8, 26]
 scan_start_position = "X {} Y{} Z{}\n".format(start_position[0], start_position[1], start_position[2])
 # Create the main window
 root = tk.Tk()
@@ -81,7 +81,7 @@ startup_sequence_index = 0
 
 def get_scan_position(i, j):
     global save_next_frame, scan_x, scan_y, zoom_above_start
-    positionbinary = ("X{} Y{} Z{}\n".format(start_position[0] + step_size * i, start_position[1] + step_size * j, start_position[2] + + zoom_above_start)).encode()
+    positionbinary = ("X{} Y{} Z{}\n".format(start_position[0] + step_size * i, start_position[1] + step_size * j, start_position[2] + zoom_above_start)).encode()
     return positionbinary
 
 
@@ -94,8 +94,9 @@ def start_scan():
             thisposition = get_scan_position(scan_x, scan_y)
             test_command = absolute_preable + thisposition
             send_gcode(test_command)
+            time.sleep(1)
             save_next_frame = True
-            time.sleep(2)
+            time.sleep(1)
 
 def variance_callback():
     global record_variance_next_frame
@@ -156,14 +157,7 @@ def zoom_till_good_enough():
 startup_commands = [
     home_click,
     zoom_click, 
-    zoom_in,
     
-    zoom_click,
-    shrink_z_step, 
-    
-    go_above_best_zoom,
-    zoom_to_best_zoom, 
-    start_scan
 ]        
 
 startbutton = tk.Button(button_frame, text="Start", command=startup_sequence)
@@ -270,7 +264,7 @@ def update_video():
         if ret:
             cv2.imshow("Video Feed", frame)
             if save_next_frame:
-                cv2.imwrite("{}-{}.jpg".format(scan_x, scan_y), frame)
+                cv2.imwrite("./level0/{}-{}.jpg".format(scan_x, scan_y), frame)
                 save_next_frame = False
                 
             if record_variance_next_frame:
@@ -322,7 +316,7 @@ def start_video_thread():
         root.destroy()
 
 # Create a thread for the video feed update loop
-# start_video_thread()
+start_video_thread()
 
 # Start the Tkinter event loop
 root.mainloop()
