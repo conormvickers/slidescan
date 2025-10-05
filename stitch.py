@@ -2,7 +2,8 @@ from stitching import AffineStitcher
 import cv2
 import os
 
-stitcher = AffineStitcher()
+stitcher = AffineStitcher( )
+
 
 
 rangex = (0, 4)
@@ -25,7 +26,7 @@ for level in range(0, 4):
             print("stitching", imageApath, imageBpath, "to", combined_path)
 
 
-            combined = stitcher.stitch([imageApath, imageBpath])
+            combined = stitcher.stitch_verbose([imageApath, imageBpath])
 
             combined_path = next_level_path + "{}-{}.jpg".format(x, int(y // 2))
             cv2.imwrite(combined_path, combined)
@@ -38,8 +39,9 @@ for level in range(0, 4):
 
                 imageApath = level_path + "{}-{}.jpg".format(x, y)
                 imageBpath = level_path + "{}-{}.jpg".format(x + 1, y)
+                print("stitching", imageApath, imageBpath)
 
-                combined = stitcher.stitch([imageApath, imageBpath])
+                combined = stitcher.stitch_verbose([imageApath, imageBpath])
 
                 combined_path = next_level_path + "{}-{}.jpg".format(int(x // 2), y)
                 print("stitched", imageApath, imageBpath, "to", combined_path)

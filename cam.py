@@ -19,7 +19,7 @@ threads = []
 
 
 absolute_preable = b"G90 G0"    
-start_position = [-3.1, -8.8, 26]
+start_position = [-3.1, -8.8, 21.5]
 scan_start_position = "X {} Y{} Z{}\n".format(start_position[0], start_position[1], start_position[2])
 # Create the main window
 root = tk.Tk()
@@ -71,7 +71,7 @@ record_variance_next_frame = False
 highest_variance = 0
 highest_variance_z = 0
 
-step_size = 0.05
+step_size = 0.1
 zstep_size = 0.1
 
 in_startup_sequence = True
@@ -81,7 +81,7 @@ startup_sequence_index = 0
 
 def get_scan_position(i, j):
     global save_next_frame, scan_x, scan_y, zoom_above_start
-    positionbinary = ("X{} Y{} Z{}\n".format(start_position[0] + step_size * i, start_position[1] + step_size * j, start_position[2] + zoom_above_start)).encode()
+    positionbinary = ("X{} Y{} Z{}\n".format(start_position[0] + step_size * i, start_position[1] + step_size * j, start_position[2] + highest_variance_z)).encode()
     return positionbinary
 
 
@@ -100,9 +100,9 @@ def start_scan():
 
 def variance_callback():
     global record_variance_next_frame
-    
+    time.sleep(0.5)
     record_variance_next_frame = True
-    time.sleep(1)
+    time.sleep(0.5)
             
 
 def zoom_in():
@@ -135,17 +135,16 @@ def go_above_best_zoom():
     
 def zoom_to_best_zoom():
     global highest_variance_z
+    print("Zooming to best zoom clicked!", highest_variance_z)
     zoom_to_position = "X {} Y{} Z{}\n".format(start_position[0], start_position[1], start_position[2] + highest_variance_z ).encode()
     test_command = absolute_preable + zoom_to_position
-    send_gcode(test_command)
+    send_gcode(test_command, longwait)
     
-def shrink_z_step():
-    global zstep_size, startup_sequence_index, startup_commands, zoom_above_start
-    zoom_above_start = highest_variance_z - ( 3 * zstep_size)
-    zstep_size = zstep_size / 2
-    startup_sequence_index = startup_sequence_index + 1
-    startup_commands[startup_sequence_index]()
     
+    
+def longwait():
+    print("Long wait clicked!")
+    time.sleep(3)
 def zoom_till_good_enough():
     global zoom_above_start
     print("Zoom till good enough clicked!")
@@ -157,7 +156,17 @@ def zoom_till_good_enough():
 startup_commands = [
     home_click,
     zoom_click, 
-    
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_till_good_enough,
+    zoom_to_best_zoom,
+    start_scan
 ]        
 
 startbutton = tk.Button(button_frame, text="Start", command=startup_sequence)
@@ -275,8 +284,10 @@ def update_video():
                 laplacian = cv2.Laplacian(gray, cv2.CV_64F)
                 variance = laplacian.var()
                 print("Variance: ", variance)
+                print("Zoom: ", zoom_above_start)
                 
                 if variance > highest_variance:
+                    print("######### New highest variance: ", variance, "at zoom: ", zoom_above_start)
                     highest_variance = variance
                     highest_variance_z = zoom_above_start
                     
