@@ -2,7 +2,7 @@ from stitching import AffineStitcher
 import cv2
 import os
 
-stitcher = AffineStitcher( )
+stitcher = AffineStitcher( detector="sift")
 
 
 
@@ -11,8 +11,8 @@ rangey = (0, 4)
 level = 0
 
 for level in range(0, 4):
-    level_path = "./level{}/".format(level)
-    next_level_path = "./level{}/".format(level + 1)
+    level_path = "./images/level{}/".format(level)
+    next_level_path = "./images/level{}/".format(level + 1)
 
     os.makedirs(level_path, exist_ok=True)
     os.makedirs(next_level_path, exist_ok=True)
@@ -26,7 +26,7 @@ for level in range(0, 4):
             print("stitching", imageApath, imageBpath, "to", combined_path)
 
 
-            combined = stitcher.stitch_verbose([imageApath, imageBpath])
+            combined = stitcher.stitch([imageApath, imageBpath])
 
             combined_path = next_level_path + "{}-{}.jpg".format(x, int(y // 2))
             cv2.imwrite(combined_path, combined)
@@ -41,7 +41,7 @@ for level in range(0, 4):
                 imageBpath = level_path + "{}-{}.jpg".format(x + 1, y)
                 print("stitching", imageApath, imageBpath)
 
-                combined = stitcher.stitch_verbose([imageApath, imageBpath])
+                combined = stitcher.stitch([imageApath, imageBpath])
 
                 combined_path = next_level_path + "{}-{}.jpg".format(int(x // 2), y)
                 print("stitched", imageApath, imageBpath, "to", combined_path)
