@@ -6,11 +6,11 @@ stitcher = AffineStitcher( detector="sift")
 
 
 
-rangex = (0, 4)
-rangey = (0, 4)
+rangex = (0, 8)
+rangey = (0, 8)
 level = 0
 
-for level in range(0, 4):
+for level in range(0, 8):
     level_path = "./images/level{}/".format(level)
     next_level_path = "./images/level{}/".format(level + 1)
 

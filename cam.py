@@ -17,10 +17,14 @@ stop_event = threading.Event()
 threads = []
 
 
-
 absolute_preable = b"G90 G0"    
 start_position = [-3.1, -8.8, 21.5]
 scan_start_position = "X {} Y{} Z{}\n".format(start_position[0], start_position[1], start_position[2])
+
+fullslide_0x = -5
+fullslide_0y = -5
+fullslide_1x = -2
+fullslide_1y = -12
 # Create the main window
 root = tk.Tk()
 root.title("USB Camera with GUI")
@@ -77,20 +81,21 @@ zstep_size = 0.1
 in_startup_sequence = True
 startup_sequence_index = 0
 
+scan_size = 8
 
 
 def get_scan_position(i, j):
-    global save_next_frame, scan_x, scan_y, zoom_above_start
-    positionbinary = ("X{} Y{} Z{}\n".format(start_position[0] + step_size * i, start_position[1] + step_size * j, start_position[2] + highest_variance_z)).encode()
+    global save_next_frame, scan_x, scan_y, zoom_above_start, scan_size
+    positionbinary = ("X{} Y{} Z{}\n".format(start_position[0] + step_size * i - (step_size * scan_size / 2), start_position[1] + step_size * j - (step_size * scan_size / 2), start_position[2] + highest_variance_z)).encode()
     return positionbinary
 
 
     
 def start_scan():
-    global save_next_frame, scan_x, scan_y, zoom_above_start
+    global save_next_frame, scan_x, scan_y, zoom_above_start, scan_size
     print("Start Scan clicked!")
-    for scan_x in range(4):
-        for scan_y in range(4):
+    for scan_x in range(scan_size):
+        for scan_y in range(scan_size):
             thisposition = get_scan_position(scan_x, scan_y)
             test_command = absolute_preable + thisposition
             send_gcode(test_command)
@@ -213,20 +218,31 @@ close_button.pack(side=tk.LEFT)
 
 # Establish serial connection with GRBL controller
 try:
-    ser = serial.Serial('/dev/ttyACM0', 115200, timeout=3)  # Replace '/dev/ttyUSB0' with your actual serial port
+    ser = serial.Serial('/dev/ttyACM1', 115200, timeout=3)  # Replace '/dev/ttyUSB0' with your actual serial port
     print("Serial connection established with GRBL controller")
 except serial.SerialException:
     print("Failed to establish serial connection with GRBL controller")
     
 def send_gcode(gcode, callback=None):
     global in_startup_sequence, startup_sequence_index, startup_commands, zoom_above_start
+ 
+    print("Sending G-code:", gcode.decode().strip())
     ser.write(gcode)
-    response = ser.readline()
-    while not re.search(b"ok\n?", response): #response != b'':  # wait for 'ok' response from GRBL
-        response = ser.readline()
+    time.sleep(0.5)
+    ser.write(b"G4 P0\n")
+    response = ser.readline().decode().strip()
+    print("Response: ", response)
+    while 'ok' not in response:
+        response = ser.readline().decode().strip()
         print("Response: ", response)
-        if response:
-            print(response.decode())
+    print("wait confirmed: ", response)
+    response = ser.readline().decode().strip()
+ 
+    while 'ok' not in response:
+        response = ser.readline().decode().strip()
+        print("Response: ", response)
+       
+    print("Done")
     print("Done")
     if callback:
         print("Running callback")
@@ -246,6 +262,13 @@ def update_video():
     
     try:
         cap = cv2.VideoCapture(0)
+        
+        width = 1920  # Desired width
+        height = 1080  # Desired height
+        
+        cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+        cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        
         ret, frame = cap.read()
         if not ret:
             print("Error reading frame")
@@ -273,7 +296,7 @@ def update_video():
         if ret:
             cv2.imshow("Video Feed", frame)
             if save_next_frame:
-                cv2.imwrite("./level0/{}-{}.jpg".format(scan_x, scan_y), frame)
+                cv2.imwrite("./images/level0/{}-{}.jpg".format(scan_x, scan_y), frame)
                 save_next_frame = False
                 
             if record_variance_next_frame:
