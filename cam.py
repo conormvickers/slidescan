@@ -268,6 +268,8 @@ def update_video():
         
         cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+        cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
         
         ret, frame = cap.read()
         if not ret:

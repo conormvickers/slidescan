@@ -119,6 +119,8 @@ def save_frame(frame, x, y):
 capindex = 0
 def get_frame(cap):
     global capindex
+    ret, toss = cap.read()
+    print("Discarded frame")
     ret, frame = cap.read()
     if not ret:
         print("Error reading frame")
@@ -165,23 +167,13 @@ def findbestzoom(ser, cap, maxtries):
             highest_variance_z = zoom_above_start
     
     print("Best zoom found at Z =", highest_variance_z, "with variance =", highest_variance)
-    return highest_variance_z
-
-# Establish serial connection with GRBL controller
-try:
-    ser = serial.Serial('/dev/ttyACM1', 115200, timeout=3)  # Replace '/dev/ttyUSB0' with your actual serial port
-    print("Serial connection established with GRBL controller")
-except serial.SerialException:
-    print("Failed to establish serial connection with GRBL controller")
-
-time.sleep(1)  # Wait for the serial connection to initialize
-
+    
 cap = cv2.VideoCapture(0)
-cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
-
 if not cap.isOpened():
     print("Error opening camera")
     exit()
+cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
+
 ret, frame = cap.read()
 if not ret:
     print("Error reading frame")
@@ -190,13 +182,7 @@ else:
 
 cv2.namedWindow("Video Feed")
 get_frame(cap)
-home(ser)
-movetostart(ser)
-time.sleep(1)
-get_frame(cap)
-bestadjustment = findbestzoom(ser, cap, 14)
-print("Best adjustment found:", bestadjustment)
-movetobest(bestadjustment, ser, cap)
+
 time.sleep(1)
 get_frame(cap)
 cv2.waitKey(1000)
@@ -208,7 +194,5 @@ get_frame(cap)
 cv2.waitKey(1000)
 # start_scan(bestadjustment, ser, cap)
 
-ser.close()
 cap.release()
-cv2.destroyAllWindows()
    
